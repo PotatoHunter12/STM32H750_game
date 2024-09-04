@@ -1,0 +1,138 @@
+$version 1.0
+
+attr active = MyGame::Game;
+attr callStackMonitor_Show = false;
+attr connectInspectors = false;
+attr currentCodeInspector = MyGame::Game.rightKeyDown;
+attr debug_TrackUpdates = false;
+attr extractDoc_ClassOverview = true;
+attr extractDoc_DeleteOldFiles = false;
+attr extractDoc_Destination = ./HtmlDoc;
+attr extractDoc_IgnoreAccessors = true;
+attr extractDoc_IgnoreMembers = true;
+attr extractDoc_Navigation = true;
+attr extractDoc_Profiles = false;
+attr extractDoc_Title = Documentation;
+attr extractDoc_Variants = false;
+attr generateClut_ReservedColors = 0;
+attr heapMonitor_Show = false;
+attr language = Default;
+attr profile = STM32;
+attr profilerMonitor_Show = false;
+attr search_CaseSensitive = false;
+attr search_IgnoreDescription = false;
+attr search_IgnoreMosaic = false;
+attr search_LimitToComposer = false;
+attr search_WholeWords = false;
+attr search_WildCards = false;
+
+view Project
+{
+  attr scrollTo = <-7,41>;
+  attr zoom = 1.0;
+}
+
+view unit MyGame
+{
+  attr scrollTo = <-103,-57>;
+  attr zoom = 1.0;
+}
+
+view class MyGame::Game
+{
+  attr enableWireMode = false;
+  attr scrollTo = <-187,-80>;
+  attr zoom = 0.75;
+}
+
+view class MyGame::Enemies
+{
+  attr scrollTo = <-228,-55>;
+  attr zoom = 1.0;
+}
+
+view class MyGame::MenuClass
+{
+  attr scrollTo = <-317,-7>;
+  attr zoom = 1.0;
+}
+
+codeview MyGame::Enemies.PrepareZombs
+{
+  attr codeColSelect = false;
+  attr codeFirstPos = <0,0>;
+  attr codeSelEnd = <38,6>;
+  attr codeSelStart = <38,6>;
+}
+
+codeview MyGame::Game.PrepareLevel
+{
+  attr codeColSelect = false;
+  attr codeFirstPos = <0,0>;
+  attr codeSelEnd = <14,2>;
+  attr codeSelStart = <14,2>;
+}
+
+codeview MyGame::Game.Animate
+{
+  attr codeColSelect = false;
+  attr codeFirstPos = <0,9>;
+  attr codeSelEnd = <2,16>;
+  attr codeSelStart = <2,16>;
+}
+
+codeview MyGame::Game.CheckCollision
+{
+  attr codeColSelect = false;
+  attr codeFirstPos = <0,0>;
+  attr codeSelEnd = <0,0>;
+  attr codeSelStart = <0,0>;
+}
+
+codeview MyGame::Enemies.CheckCollision
+{
+  attr codeColSelect = false;
+  attr codeFirstPos = <0,0>;
+  attr codeSelEnd = <6,34>;
+  attr codeSelStart = <6,34>;
+}
+
+codeview MyGame::MenuClass.RestartGame
+{
+  attr codeColSelect = false;
+  attr codeFirstPos = <0,0>;
+  attr codeSelEnd = <22,1>;
+  attr codeSelStart = <22,1>;
+}
+
+codeview MyGame::Game.onDragPlayer
+{
+  attr codeColSelect = false;
+  attr codeFirstPos = <0,0>;
+  attr codeSelEnd = <49,8>;
+  attr codeSelStart = <49,8>;
+}
+
+codeview MyGame::Game.updatePlayer
+{
+  attr codeColSelect = false;
+  attr codeFirstPos = <0,0>;
+  attr codeSelEnd = <0,0>;
+  attr codeSelStart = <0,0>;
+}
+
+codeview MyGame::Game.leftKeyDown
+{
+  attr codeColSelect = false;
+  attr codeFirstPos = <0,0>;
+  attr codeSelEnd = <0,0>;
+  attr codeSelStart = <0,0>;
+}
+
+codeview MyGame::Game.rightKeyDown
+{
+  attr codeColSelect = false;
+  attr codeFirstPos = <0,0>;
+  attr codeSelEnd = <0,0>;
+  attr codeSelStart = <0,0>;
+}

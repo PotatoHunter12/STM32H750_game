@@ -1,0 +1,1108 @@
+﻿$version 13.05
+
+$rect <490,50,690,90>
+$output false
+resource Resources::Font DescrFont
+{
+  attr fontname FontName = Consolas;
+  attr fontheight Height = 16;
+  attr fontquality Quality = High;
+  attr fontranges Ranges = 0x20-0xFF;
+  attr fontaspectratio AspectRatio = 1.0;
+  attr fontbold Bold = false;
+  attr fontitalic Italic = false;
+  attr fontkerning Kerning = true;
+  attr fontheightmode HeightMode = Compatible;
+  attr fontrowdistance RowDistance;
+}
+
+$rect <490,130,690,170>
+$output false
+resource Resources::Bitmap Bricks
+{
+  attr bitmapfile FileName = .\Res\Bricks.png;
+  attr framesize FrameSize = <60,24>;
+  attr framedelay FrameDelay;
+  attr bitmapformat Format = Native;
+  attr bitmapdithering Dithering = Auto;
+  attr bitmapmode Mode = Default;
+}
+
+// Resources
+note group Note5
+{
+  attr Bounds = <470,10,710,380>;
+}
+
+// This is a class.
+$rect <40,130,240,170>
+$output false
+class Enemies : Core::Group
+{
+  // The method 'CheckCollision' checks for collisions of the given ball with a brick \
+  // of the row. In case of a collision, the direction of the ball will change, the \
+  // brick becomes invisble and the score is counted. The method returns the number \
+  // of remaining active bricks.
+  $rect <250,363,450,403>
+  method bool CheckCollision( arg MyGame::BulletPosition aBall )
+  {
+    /* first check if the ball is touching the current row - otherwise nothing to do */
+    var rect overlapp = aBall.Bounds && Bounds;
+    if ( overlapp.isempty )
+      return false;
+
+    /* iterate through all vies (bricks) */
+    var Core::View view = first;
+    while ( view != null )
+    {
+      var Views::Image image = (Views::Image)view;
+      if ( image != null && image.Visible )
+      {
+        var rect bounds = image.Bounds + Bounds.origin;
+         
+        /* build the intersection of the ball position and the brick position */
+        overlapp = aBall.Bounds && bounds;
+      
+        if ( !overlapp.isempty )
+        {
+          /* update score counter */
+          MyGame::Data.Score = MyGame::Data.Score + image.FrameNumber + 1;
+        
+          /* respawn the zombie */
+          image.Bounds.origin.y = math_rand(0,220);
+          
+
+          return true;
+        }
+      }
+      /*if the zombie comes too close */
+      if( image.Bounds.origin.y > 500)
+      {
+          image.Bounds.origin.y = math_rand(0,220);
+          MyGame::Data.Lives = MyGame::Data.Lives - 1;
+
+      }
+      view = view.next;
+    }
+
+    return false;
+
+  }
+
+  // The method 'PrepareBricks' initializes all bricks of the row. The given parameter \
+  // 'aType' determines the style of the bricks.
+  $rect <250,313,450,353>
+  method void PrepareZombs()
+  {
+    /* make a default initialization */
+
+    zom1.Bounds.origin.y = math_rand(0,233);
+    zom2.Bounds.origin.y = math_rand(0,233);
+    zom3.Bounds.origin.y = math_rand(0,233);
+    zom4.Bounds.origin.y = math_rand(0,233);
+    zom5.Bounds.origin.y = math_rand(0,233);
+
+
+
+  }
+
+  $rect <30,310,230,350>
+  inherited property Bounds = <0,0,480,272>;
+
+  $rect <20,20,160,60>
+  object Views::Image zom1
+  {
+    preset Bounds = <20,232,60,272>;
+    preset Orientation = Views::Orientation.Rotated_180;
+    preset AutoSize = true;
+    preset Bitmap = MyGame::Zombie;
+  }
+
+  $rect <20,20,160,60>
+  object Views::Image zom2
+  {
+    preset Bounds = <114,232,154,272>;
+    preset Orientation = Views::Orientation.Rotated_180;
+    preset AutoSize = true;
+    preset Bitmap = MyGame::Zombie;
+  }
+
+  $rect <20,20,160,60>
+  object Views::Image zom3
+  {
+    preset Bounds = <220,232,260,272>;
+    preset Orientation = Views::Orientation.Rotated_180;
+    preset AutoSize = true;
+    preset Bitmap = MyGame::Zombie;
+  }
+
+  $rect <20,20,160,60>
+  object Views::Image zom4
+  {
+    preset Bounds = <325,232,365,272>;
+    preset Orientation = Views::Orientation.Rotated_180;
+    preset AutoSize = true;
+    preset Bitmap = MyGame::Zombie;
+  }
+
+  $rect <20,20,160,60>
+  object Views::Image zom5
+  {
+    preset Bounds = <418,232,458,272>;
+    preset Orientation = Views::Orientation.Rotated_180;
+    preset AutoSize = true;
+    preset Bitmap = MyGame::Zombie;
+  }
+
+  // Directives to adapt the order of the above members according to how these members 
+  // where arranged when the project content was stored. In this manner the storage 
+  // and the expected order of the members don't depend. Merging of changes in the 
+  // project files is simplified.
+  $member Bounds
+  $member CheckCollision
+  $member PrepareZombs
+  $member zom1
+  $member zom2
+  $member zom3
+  $member zom4
+  $member zom5
+}
+
+// This is a class.
+$rect <40,240,240,280>
+$output false
+class BulletPosition
+{
+  // This is a property.
+  $rect <0,0,200,40>
+  property rect Bounds = <0,0,0,0>;
+
+  // This is a property.
+  $rect <0,40,200,80>
+  property float SpeedX = 0.0;
+
+  // This is a property.
+  $rect <0,80,200,120>
+  property float SpeedY = 0.0;
+}
+
+$rect <40,80,240,120>
+$output false
+class Game : Core::Group
+{
+  $rect <510,20,710,60>
+  inherited property Bounds = <0,0,480,272>;
+
+  $rect <510,70,710,110>
+  inherited method UpdateViewState()
+  {
+    /* Always invoke the inherited method */
+    super( aState );
+
+    /* prepare first level */
+    postsignal PrepareLevel;
+
+    /* set the ball on top of the paddle */
+    Bullet.Bounds.origin.x = Player.Bounds.center.x - Bullet.Bounds.w/2;
+    Bullet.Bounds.origin.y = Player.Bounds.y1 - Bullet.Bounds.h;
+
+    /* and set up the movement of the ball */
+    BulletPos.SpeedX = 0.2;
+    BulletPos.SpeedY = -1.0;
+    AnimationTimer.Enabled = true;
+    lastTime = AnimationTimer.Time;
+
+    playerPos = Player.Bounds.center.x;
+
+  }
+
+  // This is a slot method.
+  $rect <760,400,960,440>
+  slot onDragPlayer
+  {
+    /* store the current touch position */
+    playerPos = SimpleTouchHandler.CurrentPos.x;
+
+    /* limit it to the bounds area */
+    if ( playerPos < 0 )
+      playerPos = 0;
+    if ( playerPos > Bounds.w )
+      playerPos = Bounds.w;
+
+  }
+
+  // The slot method 'Animate' is timer driven and calculates the next position of \
+  // ball, paddle and background.
+  $rect <510,290,710,330>
+  slot Animate
+  {
+    var int32 deltaX;
+    slowFactor = slowFactor + 1;
+    if(Data.Lives == 0)
+    {
+       MenuClass.Show();
+    }
+    else if (Data.Lives == 6)
+    {
+      Data.Lives = 5;
+      Data.Score = 0;
+      speedFactor = 1;
+      slowFactor = 0;
+
+      SimpleTouchHandler.CurrentPos.x = Bounds.w/2;
+      playerPos = Bounds.w/2;
+      Player.Bounds.origin.x = StartPos;
+
+      Enemies.PrepareZombs();
+    }
+    else {
+      if (Enemies.CheckCollision( BulletPos ))
+      {
+        Bullet.Visible = false;
+      }
+      if ( bulletMove == true )
+      {
+        /* move the bullet forward - if enabled */
+        Bullet.Bounds.origin.y = Bullet.Bounds.origin.y - 5;
+
+        BulletPos.Bounds = Bullet.Bounds;
+        CheckCollision( BulletPos );
+      }
+      else
+      {
+        /* otherwise reset the bullet position */
+        Bullet.Bounds.origin.x = Player.Bounds.center.x - Bullet.Bounds.w / 2;
+        Bullet.Bounds.origin.y = Player.Bounds.y1 - Bullet.Bounds.h;
+        BulletPos.Bounds = Bullet.Bounds;
+        bulletMove = true;
+        Bullet.Visible = true;
+      }
+      if ( slowFactor == 1 )
+      {
+        Enemies.zom1.Bounds.origin.y = Enemies.zom1.Bounds.origin.y + speedFactor;
+        Enemies.zom2.Bounds.origin.y = Enemies.zom2.Bounds.origin.y + speedFactor;
+        Enemies.zom3.Bounds.origin.y = Enemies.zom3.Bounds.origin.y + speedFactor;
+        Enemies.zom4.Bounds.origin.y = Enemies.zom4.Bounds.origin.y + speedFactor;
+        Enemies.zom5.Bounds.origin.y = Enemies.zom5.Bounds.origin.y + speedFactor;
+        slowFactor = 0;
+
+      }
+
+      /* update the player position */
+      deltaX = ( Player.Bounds.center.x - playerPos ) / 2;
+      Player.Bounds.origin.x = Player.Bounds.origin.x - deltaX;
+    }
+
+
+  }
+
+  // The slot method 'PrepareLevel' is used to initialize all brick rows according \
+  // the reached game level.
+  $rect <510,140,710,180>
+  slot PrepareLevel
+  {
+    speedFactor = 1;
+    slowFactor = 0;
+    Data.Lives = 5;
+    Data.Score = 0;
+    Player.Bounds.origin.x = StartPos;
+    Enemies.PrepareZombs();
+  }
+
+  // Timer object to perform the ball movement.
+  $rect <510,250,710,290>
+  object Core::Timer AnimationTimer
+  {
+    preset OnTrigger = Animate;
+    preset Period = 15;
+  }
+
+  // The time in milliseconds when the timer is expired for the last time.
+  $rect <220,400,420,440>
+  var uint32 lastTime;
+
+  // The factor for the pixel speed to real speed.
+  $rect <9,360,209,400>
+  var float speedFactor = 0.15;
+
+  // The method 'CheckCollision' is responsible to detect any ball collision with \
+  // borders, paddle or other elements.
+  $rect <510,180,710,220>
+  method void CheckCollision( arg MyGame::BulletPosition aBall )
+  {
+    /* hit top border */
+    if ( aBall.Bounds.y1 <= 0 && aBall.SpeedY < 0.0 )
+    {
+      bulletMove = false;
+    }
+
+
+  }
+
+  // Object containing the current position and speed vector of the ball.
+  $rect <509,349,709,389>
+  object MyGame::BulletPosition BulletPos;
+
+  // This is an image view.
+  $rect <20,20,160,60>
+  object Views::Image Background
+  {
+    preset Bounds = <-8,-2,492,274>;
+    preset AutoSize = true;
+    preset Alignment = Views::ImageAlignment[AlignHorzLeft, AlignVertCenter];
+    preset Bitmap = MyGame::Ground;
+    preset Visible = true;
+  }
+
+  // This is a generic touch handler.
+  $rect <20,20,160,60>
+  object Core::SimpleTouchHandler SimpleTouchHandler
+  {
+    preset Point4 = <0,200>;
+    preset Point3 = <480,200>;
+    preset Point2 = <480,272>;
+    preset Point1 = <0,272>;
+    preset OnDrag = onDragPlayer;
+    preset OnRelease = onStart;
+    preset OnPress = onDragPlayer;
+  }
+
+  // This is an image view.
+  $rect <20,20,160,60>
+  object Views::Image Bullet
+  {
+    preset Bounds = <233,226,257,250>;
+    preset Bitmap = MyGame::Bullet;
+    preset Opacity = 255;
+  }
+
+  // This is a filled rectangle view.
+  $rect <20,20,160,60>
+  object Views::Image Player
+  {
+    preset Bounds = <207,189,277,263>;
+    preset AutoSize = true;
+    preset Bitmap = MyGame::Player;
+  }
+
+  // Varaiable to keep the data object in the memory.
+  $rect <10,320,210,360>
+  var MyGame::DataClass Data = MyGame::Data;
+
+  $rect <760,60,960,100>
+  object Core::KeyPressHandler KeyLeftHandler
+  {
+    preset OnRelease = keyUpHandler;
+    preset OnPress = leftKeyDown;
+    preset Filter = Core::KeyCode.Left;
+  }
+
+  $rect <760,100,960,140>
+  slot leftKeyDown
+  {
+    playerDir = -Bounds.w / 64;
+    signal updatePlayer;
+    PlayerTimer.Enabled = true;
+
+
+  }
+
+  $rect <960,60,1160,100>
+  object Core::KeyPressHandler KeyRightHandler
+  {
+    preset OnRelease = keyUpHandler;
+    preset OnPress = rightKeyDown;
+    preset Filter = Core::KeyCode.Right;
+  }
+
+  $rect <960,100,1160,140>
+  slot rightKeyDown
+  {
+    /* deactivate auto demo if user want's to play... */
+    AutoDemoTimer.Enabled = false;
+
+    playerDir = Bounds.w / 64;
+    signal updatePlayer;
+    PlayerTimer.Enabled = true;
+
+
+  }
+
+  $rect <760,140,960,180>
+  slot keyUpHandler
+  {
+    PlayerTimer.Enabled = false;
+  }
+
+  $rect <760,280,960,320>
+  object Core::KeyPressHandler KeySpaceHandler
+  {
+    preset OnPress = onStart;
+    preset Filter = Core::KeyCode.Space;
+  }
+
+  $rect <760,190,960,230>
+  object Core::Timer PlayerTimer
+  {
+    preset OnTrigger = updatePlayer;
+    preset Period = 15;
+  }
+
+  $rect <960,190,1160,230>
+  slot updatePlayer
+  {
+    if ((( playerPos > 0 ) && ( playerDir < 0 )) || (( playerPos < Bounds.w ) && ( playerDir > 0 )))
+      playerPos = playerPos + playerDir;
+    if ( playerPos < 0 )
+      playerPos = 0;
+    if ( playerPos > Bounds.w )
+      playerPos = Bounds.w;
+
+  }
+
+  $rect <760,230,960,270>
+  var int32 playerDir = 0;
+
+  // Slot method to start non-moving ball.
+  $rect <960,400,1160,440>
+  slot onStart
+  {
+    StartPos = Player.Bounds.origin.x;
+
+    /* start the ball movement... */
+    bulletMove = true;
+
+  }
+
+  // Flag to indicate the current ball status (move / hold).
+  $rect <220,320,420,360>
+  var bool bulletMove = true;
+
+  // Horizontal position of the paddle.
+  $rect <220,360,420,400>
+  var int32 playerPos = 400;
+
+  $rect <20,20,160,60>
+  object MyGame::LcdDisplay ScoreDisplay
+  {
+    preset Bounds = <393,5,480,31>;
+    preset NoOfDigits = 5;
+    preset Outlet = ^MyGame::Data.Score;
+    preset TextColor = #FFFFFFFF;
+  }
+
+  $rect <20,20,160,60>
+  object Views::Text ScoreDescr
+  {
+    preset Bounds = <338,5,388,25>;
+    preset Alignment = Views::TextAlignment[AlignHorzRight, AlignVertTop];
+    preset String = "Score:";
+    preset Font = MyGame::DescrFont;
+    preset Color = #FFFFFFFF;
+  }
+
+  $rect <20,20,160,60>
+  object MyGame::LcdDisplay LevelDisplay
+  {
+    preset Bounds = <136,5,196,30>;
+    preset NoOfDigits = 2;
+    preset Outlet = ^MyGame::Data.Lives;
+    preset TextColor = #FFFFFFFF;
+  }
+
+  $rect <20,20,160,60>
+  object Views::Text LevelDescr
+  {
+    preset Bounds = <5,4,136,24>;
+    preset Alignment = Views::TextAlignment[AlignHorzRight, AlignVertTop];
+    preset String = "Lives remaining:";
+    preset Font = MyGame::DescrFont;
+    preset Color = #FFFFFFFF;
+  }
+
+  // Keyboard handling
+  note group Note
+  {
+    attr Bounds = <740,10,1180,340>;
+  }
+
+  // Touch event handling
+  note group Note2
+  {
+    attr Bounds = <740,350,1180,460>;
+  }
+
+  $rect <20,20,160,60>
+  object MyGame::Enemies Enemies
+  {
+    preset Bounds = <0,-272,480,273>;
+  }
+
+  $rect <11,400,209,440>
+  var int32 slowFactor;
+
+  $rect <9,440,209,480>
+  var int32 StartPos;
+
+  $rect <20,20,160,60>
+  object MyGame::MenuClass MenuClass
+  {
+    preset Bounds = <0,-1,480,271>;
+  }
+
+  // Directives to adapt the order of the above members according to how these members 
+  // where arranged when the project content was stored. In this manner the storage 
+  // and the expected order of the members don't depend. Merging of changes in the 
+  // project files is simplified.
+  $member Bounds
+  $member UpdateViewState
+  $member onDragPlayer
+  $member Animate
+  $member PrepareLevel
+  $member AnimationTimer
+  $member lastTime
+  $member speedFactor
+  $member CheckCollision
+  $member BulletPos
+  $member Background
+  $member SimpleTouchHandler
+  $member Bullet
+  $member Player
+  $member Data
+  $member KeyLeftHandler
+  $member leftKeyDown
+  $member KeyRightHandler
+  $member rightKeyDown
+  $member keyUpHandler
+  $member KeySpaceHandler
+  $member PlayerTimer
+  $member updatePlayer
+  $member playerDir
+  $member onStart
+  $member bulletMove
+  $member playerPos
+  $member Note
+  $member Note2
+  $member Enemies
+  $member slowFactor
+  $member ScoreDisplay
+  $member LevelDisplay
+  $member LevelDescr
+  $member ScoreDescr
+  $member StartPos
+  $member MenuClass
+}
+
+$rect <490,210,690,250>
+$output false
+resource Resources::Bitmap Bullet
+{
+  attr bitmapfile FileName = .\Res\Ball.png;
+  attr framesize FrameSize;
+  attr framedelay FrameDelay;
+  attr bitmapformat Format = Native;
+  attr bitmapdithering Dithering = Auto;
+  attr bitmapmode Mode = Default;
+}
+
+$rect <40,290,240,330>
+$output false
+class DataClass : Templates::DeviceClass
+{
+  $rect <230,50,430,90>
+  onset Score
+  {
+    /* limit given value to allowed range */
+    if ( value < 0 )
+      value = 0;
+
+    // The property doesn't change -> nothing to do.
+    if ( pure Score == value )
+      return;
+
+    // Remember the new value in the internal memory of the property.
+    pure Score = value;
+
+    // Notify all associated property observers.
+    notifyobservers ^Score;
+  }
+
+  // The property 'Score' represents the current score (points) of the running game.
+  $rect <30,50,230,90>
+  property int32 Score = 0;
+
+  // Data storage class to keep global game values
+  note group Note1
+  {
+    attr Bounds = <10,10,450,210>;
+  }
+
+  // The property 'Lost' represents the number of ball losts of the running game.
+  $rect <30,100,230,140>
+  property int32 Lost = 0;
+
+  $rect <230,100,430,140>
+  onset Lost
+  {
+    // The property doesn't change -> nothing to do.
+    if ( pure Lost == value )
+      return;
+
+    // Remember the new value in the internal memory of the property.
+    pure Lost = value;
+
+    // Notify all associated property observers.
+    notifyobservers ^Lost;
+  }
+
+  // The property 'Level' represents the current game level.
+  $rect <30,150,230,190>
+  property int32 Lives = 10;
+
+  $rect <230,150,430,190>
+  onset Lives
+  {
+    // The property doesn't change -> nothing to do.
+    if ( pure Lives == value )
+      return;
+
+    // Remember the new value in the internal memory of the property.
+    pure Lives = value;
+
+    // Notify all associated property observers.
+    notifyobservers ^Lives;
+  }
+}
+
+$rect <240,290,440,330>
+autoobject MyGame::DataClass Data
+{
+  preset Lives = 5;
+}
+
+// The class 'LcdDisplay' implements a digital display for showing system values.
+$rect <240,80,440,120>
+$output false
+class LcdDisplay : Core::Group
+{
+  $rect <10,80,210,120>
+  inherited property Bounds = <0,0,100,30>;
+
+  $rect <10,130,210,170>
+  inherited method UpdateViewState()
+  {
+    aState;
+
+    var int32 x = 0;
+    var int32 val = CurrentValue;
+    var int32 delta = 2;
+
+    /* update all digits... */
+    Digit1.FrameNumber = val % 10;
+    Digit2.FrameNumber = ( val / 10 ) % 10;
+    Digit3.FrameNumber = ( val / 100 ) % 10;
+    Digit4.FrameNumber = ( val / 1000 ) % 10;
+    Digit5.FrameNumber = ( val / 10000 ) % 10;
+    Digit6.FrameNumber = ( val / (int32)100000 ) % 10;
+
+    /* negative values causes ----- */
+    if ( val < 0 )
+    {
+      Digit1.FrameNumber = 10;
+      Digit2.FrameNumber = 10;
+      Digit3.FrameNumber = 10;
+      Digit4.FrameNumber = 10;
+      Digit5.FrameNumber = 10;
+      Digit6.FrameNumber = 10;
+    }
+
+    /* arrange digit 6 */
+    if ( NoOfDigits > 5 )
+    {
+      Digit6.Visible = true;
+      Digit6.Bounds.origin.x = x;
+      x = x + Digit6.Bounds.w - delta;
+    }
+    else
+      Digit6.Visible = false;
+
+    /* arrange digit 5 */
+    if ( NoOfDigits > 4 )
+    {
+      Digit5.Visible = true;
+      Digit5.Bounds.origin.x = x;
+      x = x + Digit5.Bounds.w - delta;
+    }
+    else
+      Digit5.Visible = false;
+
+    /* arrange digit 4 */
+    if ( NoOfDigits > 3 )
+    {
+      Digit4.Visible = true;
+      Digit4.Bounds.origin.x = x;
+      x = x + Digit4.Bounds.w - delta;
+    }
+    else
+      Digit4.Visible = false;
+
+    /* arrange digit 3 */
+    if ( NoOfDigits > 2 )
+    {
+      Digit3.Visible = true;
+      Digit3.Bounds.origin.x = x;
+      x = x + Digit3.Bounds.w - delta;
+    }
+    else
+      Digit3.Visible = false;
+
+    /* arrange digit 2 */
+    if ( NoOfDigits > 1 )
+    {
+      Digit2.Visible = true;
+      Digit2.Bounds.origin.x = x;
+      x = x + Digit2.Bounds.w - delta;
+    }
+    else
+      Digit6.Visible = false;
+
+    /* digit 1 is always visible */
+    Digit1.Visible = true;
+    Digit1.Bounds.origin.x = x;
+    x = x + Digit1.Bounds.w - delta;
+
+
+  }
+
+  // This is an simple image view.
+  $rect <20,20,160,60>
+  object Views::Image Digit1
+  {
+    preset Bounds = <75,0,92,24>;
+    preset AutoSize = true;
+    preset Bitmap = MyGame::LcdNumbers;
+  }
+
+  // This is an simple image view.
+  $rect <20,20,160,60>
+  object Views::Image Digit2
+  {
+    preset Bounds = <60,0,77,24>;
+    preset AutoSize = true;
+    preset FrameNumber = 0;
+    preset Bitmap = MyGame::LcdNumbers;
+  }
+
+  // This is an simple image view.
+  $rect <20,20,160,60>
+  object Views::Image Digit3
+  {
+    preset Bounds = <45,0,62,24>;
+    preset AutoSize = true;
+    preset Bitmap = MyGame::LcdNumbers;
+  }
+
+  // This is an simple image view.
+  $rect <20,20,160,60>
+  object Views::Image Digit4
+  {
+    preset Bounds = <30,0,47,24>;
+    preset AutoSize = true;
+    preset Bitmap = MyGame::LcdNumbers;
+  }
+
+  // This is an simple image view.
+  $rect <20,20,160,60>
+  object Views::Image Digit5
+  {
+    preset Bounds = <15,0,32,24>;
+    preset AutoSize = true;
+    preset Bitmap = MyGame::LcdNumbers;
+  }
+
+  // This is an simple image view.
+  $rect <20,20,160,60>
+  object Views::Image Digit6
+  {
+    preset Bounds = <0,0,17,24>;
+    preset AutoSize = true;
+    preset Bitmap = MyGame::LcdNumbers;
+  }
+
+  // The property 'NoOfDigits' stores the number of digits that are shown by the \
+  // simulated LCD display.
+  $rect <510,0,710,40>
+  property int32 NoOfDigits = 6;
+
+  // The onset method of the property 'NoOfDigits' changes the number of currently \
+  // displayed digits and rearranges the LCD display accordingly.
+  $rect <510,40,710,80>
+  onset NoOfDigits
+  {
+    /* check if the given value differs from the current value */
+    if ( pure NoOfDigits == value )
+      return;
+
+    /* check limits of the given value */
+    if ( value < 1 )
+      value = 1;
+    if ( value > 6 )
+      value = 6;
+     
+    /* store the new value */
+    pure NoOfDigits = value;
+
+    /* ...and finally, force an update */
+    InvalidateViewState();
+  }
+
+  // The property 'Value' contains the currently displayed value. If the value is \
+  // negative, all digits show a '-' sign. Please note, that the value is displayed \
+  // with the corresponding digits, independent from the position of the dot.
+  $rect <300,0,500,40>
+  property int32 CurrentValue = 0;
+
+  // The onset method of the property 'Value' changes the currently displayed value \
+  // of all digits.
+  $rect <300,40,500,80>
+  onset CurrentValue
+  {
+    /* check if the given value differs from the current value */
+    if ( pure CurrentValue == value )
+      return;
+
+    /* store the new 1value */ 
+    pure CurrentValue = value;
+
+    /* ...and finally, force an update */
+    InvalidateViewState();
+
+  }
+
+  // This slot method will receive a signal, if the value of the property assigned \
+  // to @Outlet has been changed by another widget or by the application logic. In \
+  // response to this notification, the widget will update itself.
+  $rect <300,180,500,220>
+  slot outletSlot
+  {
+    /* update the current state of the widget */
+    if ( Outlet != null )
+      CurrentValue = Outlet^;
+  }
+
+  $rect <300,130,500,170>
+  onset Outlet
+  {
+    /* check if the new outlet differs from the currently used outlet */
+    if ( pure Outlet == value )
+      return;
+
+    /* detach from the previous outlet */
+    if ( pure Outlet != null )
+      detachobserver outletSlot, pure Outlet;
+
+    /* store the new outlet */
+    pure Outlet = value;
+
+    /* ... and attach to the new one */
+    if ( value != null )
+      attachobserver outletSlot, value;
+
+    /* finally, update the current state of the widget by posting a signal to the outlet slot */
+    if ( value != null )
+      postsignal outletSlot;
+  }
+
+  // The property 'Outlet' provides an interface for the Controller-View model. In \
+  // the Controller-View model, the widgets (views) and the application logic (controllers) \
+  // are always kept apart. An automatism behind this model ensures, that widgets \
+  // are notified automatically as soon as the affected controller has changed its \
+  // state. On the other hand, user interactions on a widget cause the affected controller \
+  // to execute the application logic. Usually, a controller is a simple Chora object \
+  // containg several properties and the implementation of onget/onset method.
+  // By assigning a property reference, Outlet establishes a connection between the \
+  // widget and the controller object, the affected property belongs to. After this, \
+  // the widget is able to read and modify the referred property in response to the \
+  // user interactions. It is also able to adapt the widget appearance, if the value \
+  // of the referred property has been modified by another widget or by the application \
+  // logic itself.
+  $rect <300,90,500,130>
+  property ^int32 Outlet = null;
+
+  // The class 'LcdDisplay' implements a widget to display values as numeric values \
+  // with a LCD style. 
+  // Each digit of the display is implemented as image - using a bitmap resource \
+  // that contains a stripe of all 10 numbers.
+  // The property 'CurrentValue' represents the momentary value of the widget. The \
+  // property 'TextColor' is used to define the color of the widget.
+  // The display can be connected with an int32 'Outlet' property to show the current \
+  // value of this property. 
+  note legend Note
+  {
+    attr Bounds = <0,230,700,370>;
+  }
+
+  // The property 'TextColor' defines the color of the widgets text members. The \
+  // property is used to assign a color independent from the current theme color.
+  $rect <510,90,710,130>
+  property color TextColor = #FFFFFFFF;
+
+  $rect <510,130,710,170>
+  onset TextColor
+  {
+    /* store the new value */
+    pure TextColor = value;
+
+    /* ...and colorize the affected members of the widget */
+    Digit1.Color = value;
+    Digit2.Color = value;
+    Digit3.Color = value;
+    Digit4.Color = value;
+    Digit5.Color = value;
+    Digit6.Color = value;
+
+  }
+}
+
+// Bitmap resource for displaying the numbers within a simulated LCD.
+$rect <490,90,690,130>
+$output false
+resource Resources::Bitmap LcdNumbers
+{
+  attr bitmapfile FileName = .\Res\LcdNumbers.png;
+  attr framesize FrameSize = <17,24>;
+  attr framedelay FrameDelay;
+  attr bitmapformat Format = Alpha8;
+  attr bitmapdithering Dithering = Auto;
+  attr bitmapmode Mode = Default;
+}
+
+// Data storage
+note group Note3
+{
+  attr Bounds = <20,200,460,350>;
+}
+
+// Game main screen,
+// enemy spawn and counter display widget
+note group Note
+{
+  attr Bounds = <20,10,460,190>;
+}
+
+$rect <490,290,690,330>
+$output false
+resource Resources::Bitmap Ground
+{
+  attr bitmapfile FileName = ./Res/Ground.png;
+  attr bitmapformat Format = Native;
+  attr framesize FrameSize;
+  attr framedelay FrameDelay;
+  attr bitmapdithering Dithering = Auto;
+  attr bitmapmode Mode = Default;
+}
+
+$rect <490,170,690,210>
+$output false
+resource Resources::Bitmap Player
+{
+  attr bitmapfile FileName = .\Res\Player.png;
+  attr bitmapformat Format = Native;
+  attr framesize FrameSize;
+  attr framedelay FrameDelay;
+  attr bitmapdithering Dithering = Auto;
+  attr bitmapmode Mode = Default;
+}
+
+$rect <490,250,690,290>
+$output false
+resource Resources::Bitmap Zombie
+{
+  attr bitmapfile FileName = ./Res/Zombie.png;
+  attr bitmapformat Format = Native;
+  attr framesize FrameSize;
+  attr framedelay FrameDelay;
+  attr bitmapdithering Dithering = Auto;
+  attr bitmapmode Mode = Default;
+}
+
+$rect <490,330,690,370>
+$output false
+resource Resources::Bitmap Menu
+{
+  attr bitmapfile FileName = .\Res\menu-bg.jpg;
+  attr bitmapformat Format = Native;
+  attr framesize FrameSize;
+  attr framedelay FrameDelay;
+  attr bitmapdithering Dithering = Auto;
+  attr bitmapmode Mode = Default;
+}
+
+// This is a class.
+$rect <240,130,440,170>
+$output false
+class MenuClass : Core::Group
+{
+  $rect <30,310,230,350>
+  inherited property Bounds = <0,0,480,272>;
+
+  $rect <20,20,160,60>
+  object Views::Image Background
+  {
+    preset Bounds = <0,0,480,272>;
+    preset Bitmap = MyGame::Menu;
+    preset Visible = false;
+  }
+
+  $rect <20,20,160,60>
+  object Views::Text Text
+  {
+    preset Bounds = <134,87,347,136>;
+    preset String = "You died :(";
+    preset Font = Resources::FontLarge;
+    preset Visible = false;
+  }
+
+  $rect <20,20,160,60>
+  object WidgetSet::PushButton ResetBtn
+  {
+    preset Bounds = <165,147,315,185>;
+    preset Enabled = false;
+    preset Opacity = 255;
+    preset Visible = false;
+    preset OnPress = RestartGame;
+    preset Label = "Try Again";
+    preset Appearance = WidgetSet::PushButton_Mono_Medium;
+  }
+
+  $rect <255,310,455,350>
+  slot RestartGame
+  {
+    sender; /* the method is called from the sender object */
+    MyGame::Data.Lives = 6;
+    Hide();
+
+  }
+
+  $rect <255,360,455,400>
+  method void Show()
+  {
+    /* Make this menu visible */
+    Background.Visible = true;
+    ResetBtn.Visible = true;
+    ResetBtn.Enabled = true;
+    Text.Visible = true;
+
+  }
+
+  $rect <255,410,455,450>
+  method void Hide()
+  {
+    /* Make this menu visible */
+    Background.Visible = false;
+    ResetBtn.Visible = false;
+    ResetBtn.Enabled = false;
+    Text.Visible = false;
+
+  }
+}
