@@ -20,11 +20,11 @@ Igro sem naredil na plošči STM32H750XB. Za razvijanje igre sem uporabil progra
 
 Embedded Wizard je program, ki je namenjen ustvarjanju grafičnih vmesnikov na napravah z omejenimi viri. 
 
-![izgled programa ew](image.png)
+![izgled programa ew](Images/image.png)
 
 Gradnike projekta, kot naprimer razredi, funkcije, slike, objekti, gumbi, besedila, dodajamo grafično na delovno površino, nato pa jim lahko določamo in urejamo atribute. V funkcije, ki jih dodamo v projekt nato lahko pišemo kodo. Program uporablja predvsem programski jezik chora, ki deluje neodvisno od platforme in pa tudi jezik c, ki se specifično uporablja na plošči.
 
-![igra v embedded wizardu](image-1.png)
+![igra v embedded wizardu](Images/image-1.png)
 
 Ko naredimo naš željen grafični vmesnik v Embedded Wizardu, poženemu "build project", kar zgenerira datoteke za našo želeno platformo. Nato z priloženo .bat datoteko poženemo ukaz `make install`, ki na ploščo, s katero se povežemo s pomočjo programa Cube Programmer, flasha zgeneriran program.
 
@@ -32,7 +32,7 @@ Ko naredimo naš željen grafični vmesnik v Embedded Wizardu, poženemu "build 
 
 Cube Programmer je orodje za programiranje na STM32 napravah, ponuja pregled in upravljanje flash spomina na napravi, prav tako pa omogoča povezavo z napravo, kar sem potreboval za ta projekt.
 
-![Cube Programmer](image-2.png)
+![Cube Programmer](Images/image-2.png)
 
 ## Opis programa
 
@@ -71,9 +71,9 @@ Ta vsebuje funkcije **Show()** in **Hide()**, ki prikažeta in skrijeta meni ter
 
 Zadnji razred v programu pa je še **LcdDisplay**, ki se uporablja za prikaz točk in življenj na zaslonu.
 
-![končni izgled igre](image-3.png)
+![končni izgled igre](Images/image-3.png)
 
-![meni, ki se pokaže ko izgubiš](image-4.png)
+![meni, ki se pokaže ko izgubiš](Images/image-4.png)
 
 ## Video
 
