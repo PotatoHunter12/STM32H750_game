@@ -79,4 +79,6 @@ Zadnji razred v programu pa je Å¡e **LcdDisplay**, ki se uporablja za prikaz toÄ
 
 Demo video delovanja igre.
 
+https://github.com/user-attachments/assets/21fc073e-8288-4a9d-bb28-dde3f7b5c51c
+
 
